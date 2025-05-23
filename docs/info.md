@@ -9,12 +9,12 @@ You can also include images in this folder and reference them in the markdown. E
 
 ## How it works
 
-SPI controlled PWM generator
+PWM generator with SPI interface
 
 ## How to test
 
-use cocotb python tests
+use cocotb library for python tests
 
 ## External hardware
 
-none that I know of
+no external hardware
