@@ -311,6 +311,8 @@ async def test_pwm_duty(dut):
     # check that there are no rising edges
     while dut.uo_out.value == 0:
         await ClockCycles(dut.clk, 1)
+        if (dut.uo_out.value != 0):
+            assert dut.uo_out.value == 0, "signal should not go high for 0 duty cycle"
         if (cocotb.utils.get_sim_time(units="ns") - start > timeout):
             break
 
@@ -324,6 +326,8 @@ async def test_pwm_duty(dut):
     # check that there are no rising edges
     while dut.uo_out.value != 0:
         await ClockCycles(dut.clk, 1)
+        if (dut.uo_out.value == 0):
+            assert dut.uo_out.value != 0, "signal should not go low for 100 duty cycle"
         if (cocotb.utils.get_sim_time(units="ns") - start > timeout):
             break
 
