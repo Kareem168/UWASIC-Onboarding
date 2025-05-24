@@ -177,28 +177,37 @@ async def test_pwm_freq(dut):
 
 
     # make sure start time is sampled at rising edge
-
+    start = cocotb.utils.get_sim_time(units="ns")
+    timeout = 1e6
     # wait for next falling edge
     while dut.uo_out.value != 0:
         await ClockCycles(dut.clk, 1)
+        if (cocotb.utils.get_sim_time(units="ns") - start > timeout):
+            return -1
 
     # wait for next rising edge
     while dut.uo_out.value == 0:
         await ClockCycles(dut.clk, 1)
+        if (cocotb.utils.get_sim_time(units="ns") - start > timeout):
+            return -1
 
     # start sample time
-    start = cocotb.utils.get_sim_time(units="ns")
+    sample_start = cocotb.utils.get_sim_time(units="ns")
 
     # wait for next falling edge
     while dut.uo_out.value != 0:
         await ClockCycles(dut.clk, 1)
+        if (cocotb.utils.get_sim_time(units="ns") - start > timeout):
+            return -1
 
     # wait for next rising edge
     while dut.uo_out.value == 0:
         await ClockCycles(dut.clk, 1)
-    
+            if (cocotb.utils.get_sim_time(units="ns") - start > timeout):
+            return -1
+            
     # calculate period in seconds
-    period = (cocotb.utils.get_sim_time(units="ns") - start) * 1e-9
+    period = (cocotb.utils.get_sim_time(units="ns") - sample_start) * 1e-9
     frequency = 1/period
 
     dut._log.info(f'Frequency: {frequency}')
