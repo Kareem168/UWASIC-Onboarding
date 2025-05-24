@@ -210,11 +210,96 @@ async def test_pwm_freq(dut):
 
     assert frequency >= 2970 and frequency <= 3030, "frequency is out of bounds"  
 
-    # Write your test here
     dut._log.info("PWM Frequency test completed successfully")
 
 
 @cocotb.test()
 async def test_pwm_duty(dut):
-    # Write your test here
+    dut._log.info("Start PWM duty cycle test")
+
+    # Set the clock period to 100 ns (10 MHz)
+    clock = Clock(dut.clk, 100, units="ns")
+    cocotb.start_soon(clock.start())
+
+    # Reset
+    dut._log.info("Reset")
+    dut.ena.value = 1
+    ncs = 1
+    bit = 0
+    sclk = 0
+    dut.ui_in.value = ui_in_logicarray(ncs, bit, sclk)
+    dut.rst_n.value = 0
+    await ClockCycles(dut.clk, 5)
+    dut.rst_n.value = 1
+    await ClockCycles(dut.clk, 5)
+
+    # set registers
+    await send_spi_transaction(dut, 1, 0x00, 0x01) # output enable
+    await send_spi_transaction(dut, 1, 0x02, 0x01) # pwm enable
+    await send_spi_transaction(dut, 1, 0x04, 0x80) # set duty cycle to 50%
+    await ClockCycles(dut.clk, 5)
+
+    # CAUCLUATING PERIOD
+
+    # make sure start time is sampled at rising edge
+    start = cocotb.utils.get_sim_time(units="ns")
+    timeout = 1e6
+    # wait for next falling edge
+    while dut.uo_out.value != 0:
+        await ClockCycles(dut.clk, 1)
+        if (cocotb.utils.get_sim_time(units="ns") - start > timeout):
+            return -1
+
+    # wait for next rising edge
+    while dut.uo_out.value == 0:
+        await ClockCycles(dut.clk, 1)
+        if (cocotb.utils.get_sim_time(units="ns") - start > timeout):
+            return -1
+
+    # start sample time
+    sample_start = cocotb.utils.get_sim_time(units="ns")
+
+    # wait for next falling edge
+    while dut.uo_out.value != 0:
+        await ClockCycles(dut.clk, 1)
+
+    # wait for next rising edge
+    while dut.uo_out.value == 0:
+        await ClockCycles(dut.clk, 1)
+
+    # calculate period
+    period = cocotb.utils.get_sim_time(units="ns") - sample_start
+
+    # CALCULATE DUTY CYCLE FOR 50%
+
+    # make sure start time is sampled at rising edge
+    start = cocotb.utils.get_sim_time(units="ns")
+    timeout = 1e6
+    # wait for next falling edge
+    while dut.uo_out.value != 0:
+        await ClockCycles(dut.clk, 1)
+        if (cocotb.utils.get_sim_time(units="ns") - start > timeout):
+            return -1
+
+    # wait for next rising edge
+    while dut.uo_out.value == 0:
+        await ClockCycles(dut.clk, 1)
+        if (cocotb.utils.get_sim_time(units="ns") - start > timeout):
+            return -1
+
+    # start sample time
+    sample_start = cocotb.utils.get_sim_time(units="ns")
+
+    # wait for next falling edge
+    while dut.uo_out.value != 0:
+        await ClockCycles(dut.clk, 1)
+
+    # calculate the high time
+    high_time = cocotb.utils.get_sim_time(units="ns") - sample_start
+
+    # calculate duty cycle
+    duty_cycle = (high_time/period) * 100
+
+    dut._log.info(f'Duty cycle value (should be 50%): {duty_cycle}%')
+
     dut._log.info("PWM Duty Cycle test completed successfully")
