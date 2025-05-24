@@ -66,7 +66,7 @@ module spi_peripheral (
             else if (SCLK_sync == 2'b01) begin
                 // only sample data 16 times for SPI packet
                 if (SCLK_count < 5'd16) begin
-                    data_stream <= {data_stream[14:0], COPI};
+                    data_stream <= {data_stream[14:0], COPI_sync[1]};
                     SCLK_count <= SCLK_count +1;
                 end
             end
