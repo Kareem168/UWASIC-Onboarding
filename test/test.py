@@ -301,5 +301,32 @@ async def test_pwm_duty(dut):
     duty_cycle = (high_time/period) * 100
 
     dut._log.info(f'Duty cycle value (should be 50%): {duty_cycle}%')
+    assert duty_cycle == 50, "duty cycle should be 50%"
+
+    # CHECK DUTY CYCLE FOR 0%
+    await send_spi_transaction(dut, 1, 0x04, 0x00) # set duty cycle to 0%
+    start = cocotb.utils.get_sim_time(units="ns")
+    timeout = 1e4
+
+    # check that there are no rising edges
+    while dut.uo_out.value == 0:
+        await ClockCycles(dut.clk, 1)
+        if (cocotb.utils.get_sim_time(units="ns") - start > timeout):
+            break
+
+    dut._log.info("Duty Cycle 0% Verified")
+
+    # CHECK DUTY CYCLE FOR 0%
+    await send_spi_transaction(dut, 1, 0x04, 0xFF) # set duty cycle to 0%
+    start = cocotb.utils.get_sim_time(units="ns")
+    timeout = 1e4
+
+    # check that there are no rising edges
+    while dut.uo_out.value != 0:
+        await ClockCycles(dut.clk, 1)
+        if (cocotb.utils.get_sim_time(units="ns") - start > timeout):
+            break
+
+    dut._log.info("Duty Cycle 100% Verified")
 
     dut._log.info("PWM Duty Cycle test completed successfully")
