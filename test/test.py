@@ -173,18 +173,32 @@ async def test_pwm_freq(dut):
     await send_spi_transaction(dut, 1, 0x00, 0x01) # output enable
     await send_spi_transaction(dut, 1, 0x02, 0x01) # pwm enable
     await send_spi_transaction(dut, 1, 0x04, 0x80) # set duty cycle to 50%
+    await ClockCycles(dut.clk, 5)
 
-    # sample times for consecutive rising edges
-    pwm_signal = dut.uo_out[0]
 
-    await RisingEdge(pwm_signal)
-    start_time = cocotb.utils.get_sim_time(units="s")
+    # make sure start time is sampled at rising edge
 
-    await RisingEdge(pwm_signal)
-    end_time = cocotb.utils.get_sim_time(units="s")
+    # wait for next falling edge
+    while dut.uo_out.value != 0:
+        await ClockCycles(dut.clk, 1)
 
-    # calculate frequency
-    period = end_time - start_time
+    # wait for next rising edge
+    while dut.uo_out.value == 0:
+        await ClockCycles(dut.clk, 1)
+
+    # start sample time
+    start = cocotb.utils.get_sim_time(units="ns")
+
+    # wait for next falling edge
+    while dut.uo_out.value != 0:
+        await ClockCycles(dut.clk, 1)
+
+    # wait for next rising edge
+    while dut.uo_out.value == 0:
+        await ClockCycles(dut.clk, 1)
+    
+    # calculate period in seconds
+    period = (cocotb.utils.get_sim_time(units="ns") - start) * 1e-9
     frequency = 1/period
 
     dut._log.info(f'Frequency: {frequency}')
