@@ -77,7 +77,7 @@ module spi_peripheral (
                 2. nCS rising edge (transaction ended)
                 3. R/W bit set to 1 (to denote write)
             */
-            if (SCLK_count == 5'd16 && nCS == 2'b01 && data_strea[15]) begin
+            if (SCLK_count == 5'd16 && nCS == 2'b01 && data_stream[15]) begin
                 case (data_stream[14:8])
                         en_reg_out_7_0_addr:  en_reg_out_7_0  <= data_stream[0:7];
                         en_reg_out_15_8_addr: en_reg_out_15_8 <= data_stream[0:7];
