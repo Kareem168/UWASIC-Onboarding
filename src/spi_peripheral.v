@@ -7,17 +7,17 @@
 
 module spi_peripheral (
     input wire clk,     // clock
-    input wire rst_n    // active-low reset
-    input wire nCS      // active-low chip select
-    input wire SCLK     // SPI clock
-    input wire COPI     // controller out peripheral in
+    input wire rst_n,    // active-low reset
+    input wire nCS,      // active-low chip select
+    input wire SCLK,     // SPI clock
+    input wire COPI,     // controller out peripheral in
 
     // output registers to pwm module
-    output reg [7:0] en_reg_out_7_0;
-    output reg [7:0] en_reg_out_15_8;
-    output reg [7:0] en_reg_pwm_7_0;
-    output reg [7:0] en_reg_pwm_15_8;
-    output reg [7:0] pwm_duty_cycle;
+    output reg [7:0] en_reg_out_7_0,
+    output reg [7:0] en_reg_out_15_8,
+    output reg [7:0] en_reg_pwm_7_0,
+    output reg [7:0] en_reg_pwm_15_8,
+    output reg [7:0] pwm_duty_cycle
 );
 
     // register map constants
@@ -61,6 +61,7 @@ module spi_peripheral (
                 data_stream <= '0;
                 SCLK_count <= '0;
             end
+
             // SCLK rising edge - read COPI
             else if (SCLK_sync == 2'b01) begin
                 // only sample data 16 times for SPI packet
@@ -69,6 +70,7 @@ module spi_peripheral (
                     SCLK_count <= SCLK_count +1;
                 end
             end
+
             // check for completed transaction
             /* requirements:
                 1. 16 completed SCLK cycles (full transaction)
@@ -83,7 +85,7 @@ module spi_peripheral (
                         en_reg_pwm_15_8_addr: en_reg_pwm_15_8 <= data_stream[0:7];
                         pwm_duty_cycle_addr:  pwm_duty_cycle  <= data_stream[0:7];
                         default: ; // ignore if improper address was provided
-                    endcase
+                endcase
             end
         end
     end
