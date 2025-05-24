@@ -48,6 +48,8 @@ module spi_peripheral (
             nCS_sync  <= '0;
             SCLK_sync <= '0;
             COPI_sync <= '0;
+            data_stream <= '0;
+            SCLK_count <= '0;
         end
         // clk rising edge
         else begin
